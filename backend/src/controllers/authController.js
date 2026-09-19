@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import connectDB from '../config/db.js';
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'newswave_super_secret_jwt_key_2026_academic_project', {
@@ -42,10 +43,13 @@ export const registerUser = async (req, res, next) => {
 
     // 4. Ensure DB connection is established before querying
     if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database connection unavailable. Please check server configuration.',
-      });
+      await connectDB();
+      if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({
+          success: false,
+          message: 'Database connection unavailable. Please check server configuration.',
+        });
+      }
     }
 
     // 5. Check duplicate email
@@ -121,10 +125,13 @@ export const loginUser = async (req, res, next) => {
 
     // 3. Ensure DB connection is established before querying
     if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        success: false,
-        message: 'Database connection unavailable. Please check server configuration.',
-      });
+      await connectDB();
+      if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({
+          success: false,
+          message: 'Database connection unavailable. Please check server configuration.',
+        });
+      }
     }
 
     // 4. Find user by email
