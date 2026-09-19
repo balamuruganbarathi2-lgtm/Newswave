@@ -6,31 +6,33 @@ import { fixDuplicateArticleImages } from './services/newsService.js';
 
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
+// 1. Start listening on PORT immediately for Render port binding health checks
+const server = app.listen(PORT, () => {
+  console.log(`=======================================================`);
+  console.log(`🚀 NewsWave Backend API running on port ${PORT}`);
+  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`=======================================================`);
+});
+
+// 2. Connect to MongoDB Atlas & Initialize background services
+const initServices = async () => {
   try {
-    // 1. Connect to MongoDB
+    console.log('[Server] Connecting to MongoDB Atlas database...');
     await connectDB();
 
-    // 2. Seed initial categories & default Admin
+    console.log('[Server] Seeding categories and admin user if needed...');
     await seedDatabase();
 
-    // 3. Fix any legacy duplicate article thumbnails in MongoDB
+    console.log('[Server] Verifying article regional & thumbnail data...');
     await fixDuplicateArticleImages();
 
-    // 4. Start background news fetcher task
+    console.log('[Server] Starting background news fetcher scheduler...');
     startNewsFetcherScheduler();
 
-    // 4. Listen for incoming HTTP requests
-    app.listen(PORT, () => {
-      console.log(`=======================================================`);
-      console.log(`🚀 NewsWave Backend API running in ${process.env.NODE_ENV || 'development'} mode`);
-      console.log(`📡 URL: http://localhost:${PORT}`);
-      console.log(`=======================================================`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error.message);
-    process.exit(1);
+    console.log('[Server] All background services initialized successfully.');
+  } catch (err) {
+    console.error('[Server] Background initialization notice:', err.message);
   }
 };
 
-startServer();
+initServices();
